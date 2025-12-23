@@ -198,14 +198,11 @@ extension Color {
 
 extension UIColor {
     /// Convert SwiftUI Color to UIColor
-    init(_ color: Color) {
-        var red: CGFloat = 0
-        var green: CGFloat = 0
-        var blue: CGFloat = 0
-        var alpha: CGFloat = 0
-        
-        let uiColor = UIColor(color)
-        uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-        self.init(red: red, green: green, blue: blue, alpha: alpha)
+    convenience init(_ color: Color) {
+        if let components = color.cgColor?.components, components.count >= 3 {
+            self.init(red: components[0], green: components[1], blue: components[2], alpha: components.count >= 4 ? components[3] : 1.0)
+        } else {
+            self.init(red: 0, green: 0, blue: 0, alpha: 1)
+        }
     }
 }

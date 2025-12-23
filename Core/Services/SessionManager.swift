@@ -44,7 +44,7 @@ final class SessionManager: ObservableObject {
     }
     
     private func loadSession() {
-        if let token = authToken,
+        if let _ = authToken,
            let userData = userDefaults.data(forKey: userDataKey),
            let user = try? JSONDecoder().decode(User.self, from: userData) {
             isAuthenticated = true

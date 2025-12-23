@@ -49,7 +49,7 @@ struct LoginView: View {
                         title: "Email",
                         text: $viewModel.email,
                         keyboardType: .emailAddress,
-                        autocapitalization: .none
+                        autocapitalization: .never
                     )
                     
                     CustomSecureField(
