@@ -28,6 +28,7 @@ enum AppRoute: Hashable {
 
     // MARK: - Main App Flow
 
+    case mainTab
     case dashboard
     case budgetOverview
     case budgetEdit
@@ -38,6 +39,7 @@ enum AppRoute: Hashable {
     case peerComparison
     case aiChat
     case aiInsightDetail(insight: String)
+    case profile
     case settings
     case dataControl
 
@@ -67,6 +69,8 @@ enum AppRoute: Hashable {
             KeyBackupView()
 
         // Main Features
+        case .mainTab:
+            MainTabView()
         case .dashboard:
             DashboardView()
         case .budgetOverview:
@@ -87,6 +91,8 @@ enum AppRoute: Hashable {
             AIChatView()
         case .aiInsightDetail(let insight):
             AIInsightDetailView(insight: insight)
+        case .profile:
+            ProfileView()
         case .settings:
             SettingsView()
         case .dataControl:

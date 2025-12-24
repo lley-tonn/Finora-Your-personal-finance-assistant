@@ -140,46 +140,25 @@ struct KeyBackupView: View {
     // MARK: - Recovery Phrase Grid
 
     private var recoveryPhraseGrid: some View {
-        VStack(spacing: 12) {
-            ForEach(Array(recoveryPhrase.enumerated()), id: \.offset) { index, word in
-                phraseRow(number: index + 1, word: word)
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .leading)),
-                        removal: .opacity
-                    ))
-            }
-        }
-    }
-
-    private func phraseRow(number: Int, word: String) -> some View {
-        HStack(spacing: 16) {
-            // Number
-            Text("\(number)")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.finoraTextTertiary)
-                .frame(width: 24, alignment: .trailing)
-
-            // Word
-            Text(word)
-                .font(.system(size: 17, weight: .semibold, design: .monospaced))
+        VStack(spacing: 16) {
+            // Single line phrase display
+            Text(recoveryPhrase.joined(separator: "  "))
+                .font(.system(size: 16, weight: .semibold, design: .monospaced))
                 .foregroundColor(.finoraTextPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            // Copy indicator (visual only, no functionality)
-            Image(systemName: "doc.on.doc")
-                .font(.system(size: 14, weight: .regular))
-                .foregroundColor(.finoraTextTertiary.opacity(0.5))
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 18)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.finoraSurface)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.finoraBorder.opacity(0.2), lineWidth: 1)
+                )
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.finoraSurface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.finoraBorder.opacity(0.2), lineWidth: 1)
-        )
     }
 
     // MARK: - Security Tips
@@ -287,8 +266,8 @@ struct KeyBackupView: View {
 
     private func completeBackup() {
         // TODO: Implement actual backup verification
-        // Navigate to dashboard
-        appRouter.navigate(to: .dashboard)
+        // Navigate to main tab view
+        appRouter.navigate(to: .mainTab)
     }
 
     // MARK: - Animations
@@ -300,20 +279,18 @@ struct KeyBackupView: View {
             warningScale = 1.0
         }
 
-        // Recovery phrase - staggered appearance
-        for (index, _) in recoveryPhrase.enumerated() {
-            withAnimation(.easeInOut(duration: 0.4).delay(0.3 + Double(index) * 0.05)) {
-                phraseOpacity = 1.0
-            }
+        // Recovery phrase
+        withAnimation(.easeInOut(duration: 0.6).delay(0.2)) {
+            phraseOpacity = 1.0
         }
 
         // Confirmation toggle
-        withAnimation(.easeInOut(duration: 0.6).delay(1.0)) {
+        withAnimation(.easeInOut(duration: 0.6).delay(0.4)) {
             confirmationOpacity = 1.0
         }
 
         // CTA Button
-        withAnimation(.easeInOut(duration: 0.6).delay(1.2)) {
+        withAnimation(.easeInOut(duration: 0.6).delay(0.6)) {
             ctaOpacity = 1.0
             ctaOffset = 0
         }
