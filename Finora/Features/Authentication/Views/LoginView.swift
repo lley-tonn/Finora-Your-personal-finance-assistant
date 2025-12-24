@@ -2,177 +2,129 @@
 //  LoginView.swift
 //  Finora
 //
-//  User login screen with email/password or biometric authentication
-//  Entry point for returning users
+//  Login form with premium animations and refined UI
+//  Includes email, password fields, biometric hint, and forgot password
 //
 
 import SwiftUI
 
 struct LoginView: View {
 
-    // MARK: - Environment
+    // MARK: - Properties
 
-    @EnvironmentObject private var router: AppRouter
+    @ObservedObject var viewModel: AuthViewModel
 
-    // MARK: - State
-
-    @State private var email = ""
-    @State private var password = ""
-    @State private var showPassword = false
-    @State private var isLoading = false
+    @State private var emailOpacity: Double = 0
+    @State private var emailOffset: CGFloat = 20
+    @State private var passwordOpacity: Double = 0
+    @State private var passwordOffset: CGFloat = 20
+    @State private var extrasOpacity: Double = 0
 
     // MARK: - Body
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 32) {
-                // Header
-                VStack(spacing: 12) {
-                    Image(systemName: "lock.shield.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.finoraPrimary)
+        VStack(spacing: 24) {
+            // Email Field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Email")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.finoraTextSecondary)
 
-                    Text("Welcome Back")
-                        .font(.largeTitle.bold())
-                        .foregroundColor(.finoraTextPrimary)
-
-                    Text("Login to access your financial insights")
-                        .font(.subheadline)
-                        .foregroundColor(.finoraTextSecondary)
-                }
-                .padding(.top, 40)
-
-                // Login Form
-                VStack(spacing: 16) {
-                    // Email Field
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Email")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.finoraTextPrimary)
-
-                        TextField("your@email.com", text: $email)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-                            .padding()
-                            .background(Color.finoraSurface)
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.finoraBorder, lineWidth: 1)
-                            )
-                    }
-
-                    // Password Field
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Password")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(.finoraTextPrimary)
-
-                        HStack {
-                            if showPassword {
-                                TextField("••••••••", text: $password)
-                            } else {
-                                SecureField("••••••••", text: $password)
-                            }
-
-                            Button(action: { showPassword.toggle() }) {
-                                Image(systemName: showPassword ? "eye.slash" : "eye")
-                                    .foregroundColor(.finoraTextTertiary)
-                            }
-                        }
-                        .padding()
-                        .background(Color.finoraSurface)
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.finoraBorder, lineWidth: 1)
-                        )
-                    }
-
-                    // Forgot Password
-                    Button(action: {}) {
-                        Text("Forgot Password?")
-                            .font(.subheadline)
-                            .foregroundColor(.finoraLink)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                }
-
-                // Login Button
-                Button(action: login) {
-                    if isLoading {
-                        ProgressView()
-                            .tint(.white)
-                    } else {
-                        Text("Login")
-                            .font(.headline)
-                    }
-                }
-                .foregroundColor(.finoraTextOnPrimary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(Color.finoraButtonPrimary)
-                .cornerRadius(12)
-                .disabled(isLoading)
-
-                // Biometric Login
-                Button(action: loginWithBiometric) {
-                    HStack {
-                        Image(systemName: "faceid")
-                        Text("Login with Face ID")
-                    }
-                    .font(.headline)
-                    .foregroundColor(.finoraTextPrimary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color.finoraButtonSecondary)
-                    .cornerRadius(12)
-                }
-
-                // Register Link
-                HStack {
-                    Text("Don't have an account?")
-                        .foregroundColor(.finoraTextSecondary)
-
-                    Button(action: { router.navigate(to: .register) }) {
-                        Text("Sign Up")
-                            .foregroundColor(.finoraLink)
-                            .fontWeight(.semibold)
-                    }
-                }
-                .font(.subheadline)
+                TextField("", text: $viewModel.loginEmail)
+                    .textFieldStyle(FinoraTextFieldStyle())
+                    .textContentType(.emailAddress)
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
             }
-            .padding(24)
+            .opacity(emailOpacity)
+            .offset(y: emailOffset)
+
+            // Password Field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Password")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.finoraTextSecondary)
+
+                SecureField("", text: $viewModel.loginPassword)
+                    .textFieldStyle(FinoraTextFieldStyle())
+                    .textContentType(.password)
+            }
+            .opacity(passwordOpacity)
+            .offset(y: passwordOffset)
+
+            // Extras (Forgot Password + Biometric)
+            HStack(spacing: 16) {
+                Button(action: {
+                    viewModel.forgotPassword()
+                }) {
+                    Text("Forgot password?")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(.finoraTextTertiary)
+                }
+
+                Spacer()
+
+                // Biometric hint
+                Image(systemName: "faceid")
+                    .font(.system(size: 22))
+                    .foregroundColor(.finoraTextTertiary)
+                    .opacity(0.6)
+            }
+            .opacity(extrasOpacity)
+            .padding(.top, 8)
         }
-        .background(Color.finoraBackground.ignoresSafeArea())
-        .navigationTitle("Login")
-        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            animateAppearance()
+        }
     }
 
-    // MARK: - Methods
+    // MARK: - Animations
 
-    private func login() {
-        isLoading = true
+    private func animateAppearance() {
+        // Email field
+        withAnimation(.easeInOut(duration: 0.6).delay(0.1)) {
+            emailOpacity = 1.0
+            emailOffset = 0
+        }
 
-        // TODO: Implement actual authentication
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            isLoading = false
-            router.completeAuthentication()
+        // Password field
+        withAnimation(.easeInOut(duration: 0.6).delay(0.2)) {
+            passwordOpacity = 1.0
+            passwordOffset = 0
+        }
+
+        // Extras
+        withAnimation(.easeInOut(duration: 0.6).delay(0.3)) {
+            extrasOpacity = 1.0
         }
     }
+}
 
-    private func loginWithBiometric() {
-        // TODO: Implement biometric authentication
-        router.completeAuthentication()
+// MARK: - Custom Text Field Style
+
+struct FinoraTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .font(.system(size: 16, weight: .regular))
+            .foregroundColor(.finoraTextPrimary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color.finoraSurface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.finoraBorder.opacity(0.3), lineWidth: 1)
+            )
     }
 }
 
 // MARK: - Preview
 
 #Preview {
-    NavigationStack {
-        LoginView()
-            .environmentObject(AppRouter())
-    }
+    LoginView(viewModel: AuthViewModel())
+        .padding(.horizontal, 32)
+        .background(Color.finoraBackground)
+        .preferredColorScheme(.dark)
 }

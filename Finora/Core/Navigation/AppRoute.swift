@@ -54,9 +54,9 @@ enum AppRoute: Hashable {
 
         // Authentication
         case .login:
-            LoginView()
+            AuthContainerView()
         case .register:
-            RegisterView()
+            AuthContainerView()
         case .biometricSetup:
             BiometricSetupView()
 

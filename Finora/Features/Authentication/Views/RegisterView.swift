@@ -2,164 +2,152 @@
 //  RegisterView.swift
 //  Finora
 //
-//  New user registration with email and password
-//  First step in creating a Finora account
+//  Registration form with premium animations and refined UI
+//  Includes full name, email, password fields, and privacy acknowledgment
 //
 
 import SwiftUI
 
 struct RegisterView: View {
 
-    @EnvironmentObject private var router: AppRouter
+    // MARK: - Properties
 
-    @State private var email = ""
-    @State private var password = ""
-    @State private var confirmPassword = ""
-    @State private var agreedToTerms = false
-    @State private var isLoading = false
+    @ObservedObject var viewModel: AuthViewModel
+
+    @State private var nameOpacity: Double = 0
+    @State private var nameOffset: CGFloat = 20
+    @State private var emailOpacity: Double = 0
+    @State private var emailOffset: CGFloat = 20
+    @State private var passwordOpacity: Double = 0
+    @State private var passwordOffset: CGFloat = 20
+    @State private var confirmPasswordOpacity: Double = 0
+    @State private var confirmPasswordOffset: CGFloat = 20
+    @State private var privacyOpacity: Double = 0
+
+    // MARK: - Body
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 32) {
-                // Header
-                VStack(spacing: 12) {
-                    Image(systemName: "person.badge.plus.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.finoraPrimary)
+        VStack(spacing: 24) {
+            // Full Name Field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Full Name")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.finoraTextSecondary)
 
-                    Text("Create Account")
-                        .font(.largeTitle.bold())
-                        .foregroundColor(.finoraTextPrimary)
-
-                    Text("Start your journey to financial clarity")
-                        .font(.subheadline)
-                        .foregroundColor(.finoraTextSecondary)
-                }
-                .padding(.top, 40)
-
-                // Registration Form
-                VStack(spacing: 16) {
-                    CustomTextField(title: "Email", placeholder: "your@email.com", text: $email)
-                    CustomSecureField(title: "Password", placeholder: "••••••••", text: $password)
-                    CustomSecureField(title: "Confirm Password", placeholder: "••••••••", text: $confirmPassword)
-
-                    // Terms and Privacy
-                    Toggle(isOn: $agreedToTerms) {
-                        HStack(spacing: 4) {
-                            Text("I agree to the")
-                            Button("Terms") {}
-                                .foregroundColor(.finoraLink)
-                            Text("and")
-                            Button("Privacy Policy") {}
-                                .foregroundColor(.finoraLink)
-                        }
-                        .font(.caption)
-                        .foregroundColor(.finoraTextSecondary)
-                    }
-                    .toggleStyle(CheckboxToggleStyle())
-                }
-
-                // Register Button
-                Button(action: register) {
-                    Text(isLoading ? "Creating Account..." : "Create Account")
-                        .font(.headline)
-                        .foregroundColor(.finoraTextOnPrimary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(agreedToTerms ? Color.finoraButtonPrimary : Color.finoraBorder)
-                        .cornerRadius(12)
-                }
-                .disabled(!agreedToTerms || isLoading)
-
-                // Login Link
-                HStack {
-                    Text("Already have an account?")
-                        .foregroundColor(.finoraTextSecondary)
-
-                    Button(action: { router.navigateBack() }) {
-                        Text("Login")
-                            .foregroundColor(.finoraLink)
-                            .fontWeight(.semibold)
-                    }
-                }
-                .font(.subheadline)
+                TextField("", text: $viewModel.registerFullName)
+                    .textFieldStyle(FinoraTextFieldStyle())
+                    .textContentType(.name)
+                    .autocapitalization(.words)
             }
-            .padding(24)
+            .opacity(nameOpacity)
+            .offset(y: nameOffset)
+
+            // Email Field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Email")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.finoraTextSecondary)
+
+                TextField("", text: $viewModel.registerEmail)
+                    .textFieldStyle(FinoraTextFieldStyle())
+                    .textContentType(.emailAddress)
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
+            }
+            .opacity(emailOpacity)
+            .offset(y: emailOffset)
+
+            // Password Field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Password")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.finoraTextSecondary)
+
+                SecureField("", text: $viewModel.registerPassword)
+                    .textFieldStyle(FinoraTextFieldStyle())
+                    .textContentType(.newPassword)
+            }
+            .opacity(passwordOpacity)
+            .offset(y: passwordOffset)
+
+            // Confirm Password Field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Confirm Password")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.finoraTextSecondary)
+
+                SecureField("", text: $viewModel.registerConfirmPassword)
+                    .textFieldStyle(FinoraTextFieldStyle())
+                    .textContentType(.newPassword)
+            }
+            .opacity(confirmPasswordOpacity)
+            .offset(y: confirmPasswordOffset)
+
+            // Privacy Acknowledgment
+            VStack(alignment: .leading, spacing: 8) {
+                Text("By creating an account, you agree to our")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.finoraTextTertiary)
+                +
+                Text(" Terms of Service ")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.finoraLink)
+                +
+                Text("and")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.finoraTextTertiary)
+                +
+                Text(" Privacy Policy")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.finoraLink)
+            }
+            .opacity(privacyOpacity)
+            .padding(.top, 8)
         }
-        .background(Color.finoraBackground.ignoresSafeArea())
-        .navigationTitle("Register")
-        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            animateAppearance()
+        }
     }
 
-    private func register() {
-        isLoading = true
-        // TODO: Implement registration logic
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            isLoading = false
-            router.navigate(to: .biometricSetup)
+    // MARK: - Animations
+
+    private func animateAppearance() {
+        // Full Name field
+        withAnimation(.easeInOut(duration: 0.6).delay(0.1)) {
+            nameOpacity = 1.0
+            nameOffset = 0
+        }
+
+        // Email field
+        withAnimation(.easeInOut(duration: 0.6).delay(0.15)) {
+            emailOpacity = 1.0
+            emailOffset = 0
+        }
+
+        // Password field
+        withAnimation(.easeInOut(duration: 0.6).delay(0.2)) {
+            passwordOpacity = 1.0
+            passwordOffset = 0
+        }
+
+        // Confirm Password field
+        withAnimation(.easeInOut(duration: 0.6).delay(0.25)) {
+            confirmPasswordOpacity = 1.0
+            confirmPasswordOffset = 0
+        }
+
+        // Privacy acknowledgment
+        withAnimation(.easeInOut(duration: 0.6).delay(0.3)) {
+            privacyOpacity = 1.0
         }
     }
 }
 
-// MARK: - Helper Components
-
-private struct CustomTextField: View {
-    let title: String
-    let placeholder: String
-    @Binding var text: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.subheadline.weight(.medium))
-                .foregroundColor(.finoraTextPrimary)
-
-            TextField(placeholder, text: $text)
-                .textContentType(.emailAddress)
-                .autocapitalization(.none)
-                .padding()
-                .background(Color.finoraSurface)
-                .cornerRadius(12)
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.finoraBorder, lineWidth: 1))
-        }
-    }
-}
-
-private struct CustomSecureField: View {
-    let title: String
-    let placeholder: String
-    @Binding var text: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.subheadline.weight(.medium))
-                .foregroundColor(.finoraTextPrimary)
-
-            SecureField(placeholder, text: $text)
-                .padding()
-                .background(Color.finoraSurface)
-                .cornerRadius(12)
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.finoraBorder, lineWidth: 1))
-        }
-    }
-}
-
-private struct CheckboxToggleStyle: ToggleStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack {
-            Image(systemName: configuration.isOn ? "checkmark.square.fill" : "square")
-                .foregroundColor(configuration.isOn ? .finoraPrimary : .finoraBorder)
-                .onTapGesture { configuration.isOn.toggle() }
-
-            configuration.label
-        }
-    }
-}
+// MARK: - Preview
 
 #Preview {
-    NavigationStack {
-        RegisterView()
-            .environmentObject(AppRouter())
-    }
+    RegisterView(viewModel: AuthViewModel())
+        .padding(.horizontal, 32)
+        .background(Color.finoraBackground)
+        .preferredColorScheme(.dark)
 }
