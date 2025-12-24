@@ -38,6 +38,295 @@ This app is an AI-powered personal finance assistant with decentralized data own
 
 ---
 
+## Architecture & User Interaction Flow
+
+This section provides a comprehensive overview of how Finora is structured and how users navigate through the application. It demonstrates the privacy-first, decentralized architecture and illustrates the complete user journey from onboarding to daily financial management.
+
+---
+
+### 🏗 Architectural Map
+
+Finora is designed as a **layered, modular, privacy-first system** that cleanly separates user interface, intelligence, security, and storage responsibilities. Each layer has a distinct purpose and communicates with adjacent layers through well-defined boundaries.
+
+```
+┌─────────────────────────────────────────┐
+│       Presentation Layer (UI)           │
+│   SwiftUI Views & Visual Components     │
+└─────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────┐
+│      Navigation & App Flow              │
+│   Screen Transitions & Route Guards     │
+└─────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────┐
+│         Feature Domains                 │
+│  Budgeting │ Investments │ Debt │ AI    │
+└─────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────┐
+│       AI Analysis Engine                │
+│   Pattern Recognition & Insights        │
+└─────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────┐
+│    Security & Encryption Layer          │
+│   Key Management & Data Protection      │
+└─────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────┐
+│   Decentralized Storage Layer           │
+│      IPFS / Blockchain References       │
+└─────────────────────────────────────────┘
+```
+
+---
+
+### Architecture Layers Overview
+
+Each architectural layer has specific responsibilities and constraints to ensure scalability, security, and maintainability.
+
+#### 🎨 Presentation Layer
+- **Purpose:** Handles all UI rendering and user interaction
+- **Contains:** SwiftUI views, visual components, animations, and design system elements
+- **Responsibility:** Display data and capture user input only
+- **Constraint:** No business logic or data processing occurs here
+- **Privacy Note:** Never stores or caches sensitive financial data
+
+#### 🧭 Navigation & App Flow
+- **Purpose:** Controls all screen transitions and application routing
+- **Contains:** AppRouter, route definitions, navigation guards
+- **Responsibility:** Enforce onboarding completion, authentication status, and setup flows
+- **Constraint:** Prevents access to protected screens without proper authorization
+- **Privacy Note:** Ensures key generation and backup are completed before accessing financial data
+
+#### 🎯 Feature Domains
+- **Purpose:** Modular, isolated features for specific financial tasks
+- **Contains:** Budgeting, Investments, Debt Management, Savings, Peer Benchmarking, AI Insights
+- **Responsibility:** Feature-specific business logic and state management
+- **Constraint:** Features are independent and communicate through shared services only
+- **Privacy Note:** Each feature operates on encrypted data, decrypted only when needed
+
+#### 🤖 AI Analysis Engine
+- **Purpose:** Analyzes financial habits and generates personalized insights
+- **Contains:** Machine learning models, pattern recognition algorithms, prediction engines
+- **Responsibility:** Process financial data to produce actionable recommendations
+- **Constraint:** Operates exclusively on decrypted data **locally** on the device
+- **Privacy Note:** AI never sends raw financial data to external servers; all processing is on-device
+
+#### 🔐 Security & Encryption Layer
+- **Purpose:** Manages all encryption, decryption, and key management
+- **Contains:** Private key generation, AES-256 encryption, decentralized identity (DID) management
+- **Responsibility:** Ensure user-controlled data access and protection
+- **Constraint:** User is the sole holder of encryption keys; keys never leave the device
+- **Privacy Note:** Implements zero-knowledge architecture—app cannot access data without user authentication
+
+#### 🌐 Decentralized Storage Layer
+- **Purpose:** Stores encrypted financial data in a decentralized, immutable manner
+- **Contains:** IPFS content-addressed storage, blockchain audit trails, encrypted data blobs
+- **Responsibility:** Ensure data persistence, immutability, and user ownership
+- **Constraint:** Only encrypted data is stored; plaintext never touches this layer
+- **Privacy Note:** User owns their data; can export, migrate, or delete at any time
+
+---
+
+### 🔄 User Interaction Flow
+
+This section illustrates how users interact with Finora across different scenarios, from their first launch to daily usage and advanced privacy controls.
+
+---
+
+#### 🌟 First-Time User Flow
+
+New users experience a carefully designed onboarding journey that prioritizes trust, education, and secure setup.
+
+```
+App Launch
+    ↓
+Splash Screen (Brand Introduction)
+    ↓
+Premium Onboarding (3 Slides)
+  → Slide 1: Finance, Elevated by Intelligence
+  → Slide 2: Your Wealth. Your Data. Your Authority.
+  → Slide 3: Context That Sharpens Judgment
+    ↓
+Account Creation
+  → Email/Password or Biometric Setup
+    ↓
+Key Generation & Backup
+  → Generate Encryption Keys (DID)
+  → Display Recovery Phrase
+  → Confirm Backup Completion
+    ↓
+Financial Profile Setup
+  → Income & Expense Baseline
+  → Financial Goals
+  → Risk Tolerance (for investments)
+    ↓
+Dashboard (Main App Entry)
+  → First AI Insight Generated
+  → Quick Actions Highlighted
+```
+
+**Key Privacy Moments:**
+- Recovery phrase is shown **only once** and must be backed up offline
+- User acknowledges they are the **sole custodian** of their encryption keys
+- App cannot recover lost keys—emphasizes user sovereignty
+
+---
+
+#### 📊 Daily Usage Flow
+
+Returning users experience a streamlined, insight-driven dashboard as their central hub.
+
+```
+Open App
+    ↓
+Biometric Authentication (Face ID / Touch ID)
+    ↓
+Dashboard Overview
+  → Net Worth Summary
+  → Recent Transactions
+  → Budget Status (% remaining)
+  → AI Insight Highlight (e.g., "You're spending 20% more on dining this month")
+    ↓
+User Chooses Action:
+  → View Budget Details
+  → Add New Transaction
+  → Review Investment Portfolio
+  → Manage Debt Strategy
+  → Chat with AI Assistant
+  → Compare with Peers (opt-in)
+```
+
+**Insight Examples:**
+- "You typically spend $80 more on weekends—consider setting a weekend budget."
+- "Your emergency fund is below 3 months of expenses. Here's a savings plan."
+- "Based on your debt, the Avalanche method will save you $2,400 in interest."
+
+---
+
+#### 💰 Expense & Insight Flow
+
+Every financial transaction flows through a privacy-preserving pipeline from input to insight.
+
+```
+User Adds Expense
+  → Title, Amount, Category, Date
+    ↓
+Local Encryption (on-device)
+  → AES-256 encryption using user's private key
+    ↓
+AI Analysis (local processing)
+  → Categorization (if manual category not chosen)
+  → Pattern Detection (spending trends, anomalies)
+  → Budget Impact Calculation
+    ↓
+Insight Generation
+  → AI generates personalized recommendation
+  → Explainable reasoning provided
+    ↓
+Encrypted Storage (decentralized)
+  → Encrypted blob stored on IPFS
+  → Content hash recorded on blockchain (audit trail)
+  → User retains full ownership
+```
+
+**Privacy Guarantees:**
+- Transaction details encrypted **before** storage
+- AI processes data locally—never sent to cloud
+- User can audit all data hashes and access logs
+
+---
+
+#### 👥 Peer Benchmarking Flow (Opt-In)
+
+Users who opt into peer benchmarking can anonymously compare their financial health with similar users while preserving privacy.
+
+```
+User Opts Into Peer Benchmarking
+    ↓
+Data Anonymization (local)
+  → Income tier identified (e.g., $60k-$80k)
+  → Location generalized (e.g., "West Coast")
+  → Spending categories aggregated
+  → Personal identifiers stripped
+    ↓
+Aggregated Peer Metrics (privacy-preserving)
+  → Federated learning or secure multi-party computation
+  → No raw data shared—only statistical summaries
+    ↓
+Private Comparison Insights
+  → "You save 15% more than peers in your income tier."
+  → "Your housing costs are 10% below the median for your area."
+  → "Users with similar incomes invest 20% more on average."
+```
+
+**Privacy Safeguards:**
+- Fully **opt-in**—disabled by default
+- Anonymized data only; no reverse-identification possible
+- User can revoke consent and delete shared aggregates at any time
+
+---
+
+#### 🛡 Data Control & Privacy Flow
+
+Finora provides complete transparency and control over user data—a core differentiator from traditional fintech apps.
+
+```
+Settings → Data Control
+    ↓
+View Stored Data
+  → List of encrypted data blobs (by content hash)
+  → Blockchain audit trail (who accessed, when)
+  → Storage size and IPFS locations
+    ↓
+Export Encrypted Data
+  → Download all encrypted financial data
+  → Includes encryption keys (password-protected export)
+  → Portable to other apps or backup storage
+    ↓
+Revoke Access
+  → Disable third-party integrations
+  → Rotate encryption keys
+  → Re-encrypt all data with new keys
+    ↓
+Permanent Deletion
+  → Irreversibly delete encryption keys (data becomes unrecoverable)
+  → Remove IPFS content hashes
+  → Clear blockchain audit trail references
+  → User confirms with biometric authentication
+```
+
+**User Sovereignty Principles:**
+- User has **full visibility** into what data exists and where
+- User can **export everything** at any time (no vendor lock-in)
+- User can **permanently delete** all data (right to be forgotten)
+- App cannot access data after key deletion—truly user-owned
+
+---
+
+### 📝 Closing Notes
+
+The architecture and flow documented here reflect Finora's commitment to **privacy-first fintech**:
+
+- **Scalability:** Modular feature domains allow independent development and testing
+- **Privacy:** Zero-knowledge architecture ensures user data sovereignty
+- **Trust:** Transparent AI reasoning and blockchain audit trails build user confidence
+- **Incremental Integration:** Core AI and blockchain components will be integrated progressively, starting with placeholders and evolving to full production systems
+
+**Current Focus:**
+- Establishing robust structure and navigation flows
+- Building trust through clear privacy communication
+- Setting architectural foundation for future AI and decentralized integrations
+
+**Long-Term Vision:**
+- Fully on-device AI processing for all financial insights
+- Complete decentralization via IPFS and blockchain for data ownership
+- Industry-leading privacy standards that set a new benchmark for fintech applications
+
+---
+
 ## 📁 Project Structure
 
 ```
