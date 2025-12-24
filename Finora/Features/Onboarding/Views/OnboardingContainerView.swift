@@ -18,6 +18,8 @@ struct OnboardingContainerView: View {
     @State private var ctaOpacity: Double = 0
     @State private var ctaOffset: CGFloat = 12
     @State private var pageIndicatorOpacity: Double = 0
+    @State private var skipButtonOpacity: Double = 0
+    @State private var autoTransitionTimer: Timer?
 
     // MARK: - Body
 
@@ -28,6 +30,25 @@ struct OnboardingContainerView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
+                // Top Bar with Skip Button
+                HStack {
+                    Spacer()
+
+                    if !viewModel.isLastSlide {
+                        Button(action: {
+                            skipOnboarding()
+                        }) {
+                            Text("Skip")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.finoraTextSecondary)
+                        }
+                        .opacity(skipButtonOpacity)
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
+                .frame(height: 50)
+
                 // Onboarding Slides (TabView)
                 TabView(selection: $viewModel.currentPage) {
                     ForEach(viewModel.slides) { slide in
@@ -69,9 +90,14 @@ struct OnboardingContainerView: View {
         .preferredColorScheme(.dark)
         .onAppear {
             animateInitialAppearance()
+            startAutoTransition()
+        }
+        .onDisappear {
+            stopAutoTransition()
         }
         .onChange(of: viewModel.currentPage) { _ in
             animateCTATransition()
+            resetAutoTransition()
         }
     }
 
@@ -122,6 +148,11 @@ struct OnboardingContainerView: View {
     // MARK: - Animations
 
     private func animateInitialAppearance() {
+        // Skip button fades in
+        withAnimation(.easeInOut(duration: 0.6).delay(0.3)) {
+            skipButtonOpacity = 1.0
+        }
+
         // Page indicator fades in
         withAnimation(.easeInOut(duration: 0.8).delay(1.2)) {
             pageIndicatorOpacity = 1.0
@@ -134,12 +165,22 @@ struct OnboardingContainerView: View {
             ctaOpacity = 0
             ctaOffset = 12
 
+            // Fade out skip button
+            withAnimation(.easeInOut(duration: 0.4)) {
+                skipButtonOpacity = 0
+            }
+
             // CTA: Fade + slide up animation (12pt offset, 0.3s delay)
             withAnimation(.easeInOut(duration: 0.8).delay(0.3)) {
                 ctaOpacity = 1.0
                 ctaOffset = 0
             }
         } else {
+            // Fade in skip button
+            withAnimation(.easeInOut(duration: 0.6).delay(0.3)) {
+                skipButtonOpacity = 1.0
+            }
+
             // Fade out CTA when leaving final slide
             withAnimation(.easeInOut(duration: 0.4)) {
                 ctaOpacity = 0
@@ -148,9 +189,44 @@ struct OnboardingContainerView: View {
         }
     }
 
+    // MARK: - Auto Transition
+
+    private func startAutoTransition() {
+        autoTransitionTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
+            advanceToNextSlide()
+        }
+    }
+
+    private func stopAutoTransition() {
+        autoTransitionTimer?.invalidate()
+        autoTransitionTimer = nil
+    }
+
+    private func resetAutoTransition() {
+        stopAutoTransition()
+        if !viewModel.isLastSlide {
+            startAutoTransition()
+        }
+    }
+
+    private func advanceToNextSlide() {
+        guard !viewModel.isLastSlide else {
+            stopAutoTransition()
+            return
+        }
+
+        viewModel.nextSlide()
+    }
+
     // MARK: - Actions
 
+    private func skipOnboarding() {
+        stopAutoTransition()
+        completeOnboarding()
+    }
+
     private func completeOnboarding() {
+        stopAutoTransition()
         // Navigate to authentication
         appRouter.navigate(to: .login)
     }
