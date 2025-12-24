@@ -40,6 +40,7 @@ enum AppRoute: Hashable {
     case aiChat
     case aiInsightDetail(insight: String)
     case profile
+    case profileDetail(ProfileDetailType)
     case settings
     case dataControl
 
@@ -93,6 +94,8 @@ enum AppRoute: Hashable {
             AIInsightDetailView(insight: insight)
         case .profile:
             ProfileView()
+        case .profileDetail(let detailType):
+            ProfileDetailView(detailType: detailType)
         case .settings:
             SettingsView()
         case .dataControl:

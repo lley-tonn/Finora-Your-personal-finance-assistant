@@ -75,32 +75,16 @@ struct DashboardView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Welcome back")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.finoraTextSecondary)
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Welcome back")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.finoraTextSecondary)
 
-                Text("Financial Overview")
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundColor(.finoraTextPrimary)
-            }
-
-            Spacer()
-
-            Button(action: {
-                appRouter.navigate(to: .settings)
-            }) {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 20))
-                    .foregroundColor(.finoraTextSecondary)
-                    .frame(width: 44, height: 44)
-                    .background(
-                        Circle()
-                            .fill(Color.finoraSurface)
-                    )
-            }
+            Text("Financial Overview")
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundColor(.finoraTextPrimary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: - Net Worth Card

@@ -2,8 +2,8 @@
 //  ProfileView.swift
 //  Finora
 //
-//  User profile and settings screen
-//  Account management, security controls, and preferences
+//  Main profile screen - private control center for user data ownership
+//  Security, privacy, and preferences in a calm, professional interface
 //
 
 import SwiftUI
@@ -12,44 +12,66 @@ struct ProfileView: View {
 
     // MARK: - Properties
 
+    @StateObject private var viewModel = ProfileViewModel()
     @EnvironmentObject private var appRouter: AppRouter
+
+    @State private var sectionsOpacity: Double = 0
 
     // MARK: - Body
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                Spacer()
-                    .frame(height: 60)
+        ZStack {
+            // Background
+            Color.finoraBackground.ignoresSafeArea()
 
-                // Icon
-                Image(systemName: "person.crop.circle.fill")
-                    .font(.system(size: 64, weight: .light))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.finoraSecurity, Color.finoraSecurity.opacity(0.7)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .padding(.bottom, 24)
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 32) {
+                    // Top spacing
+                    Spacer()
+                        .frame(height: 16)
 
-                // Title
-                Text("Profile & Settings")
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundColor(.finoraTextPrimary)
+                    // Profile Header
+                    ProfileHeaderView(viewModel: viewModel)
+                        .padding(.horizontal, 24)
 
-                // Description
-                Text("Manage your account, security, and preferences")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(.finoraTextSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 48)
+                    // All Sections
+                    VStack(spacing: 28) {
+                        ForEach(viewModel.sections) { section in
+                            ProfileSectionView(
+                                section: section,
+                                viewModel: viewModel,
+                                onItemTap: { detailType in
+                                    appRouter.navigate(to: .profileDetail(detailType))
+                                }
+                            )
+                            .padding(.horizontal, 24)
+                        }
 
-                Spacer()
+                        // Danger Zone
+                        ProfileDangerZoneView(viewModel: viewModel)
+                            .padding(.horizontal, 24)
+                    }
+                    .opacity(sectionsOpacity)
+
+                    // Bottom spacing
+                    Spacer()
+                        .frame(height: 120)
+                }
             }
         }
-        .background(Color.finoraBackground)
+        .preferredColorScheme(.dark)
+        .onAppear {
+            animateAppearance()
+        }
+    }
+
+    // MARK: - Animations
+
+    private func animateAppearance() {
+        // Sections fade in
+        withAnimation(.easeInOut(duration: 0.6).delay(0.3)) {
+            sectionsOpacity = 1.0
+        }
     }
 }
 
@@ -58,5 +80,4 @@ struct ProfileView: View {
 #Preview {
     ProfileView()
         .environmentObject(AppRouter())
-        .preferredColorScheme(.dark)
 }

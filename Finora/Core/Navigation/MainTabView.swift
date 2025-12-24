@@ -61,7 +61,8 @@ struct MainTabView: View {
                 .transition(.opacity)
 
         case .budget:
-            BudgetPlaceholderView()
+            BudgetOverviewView()
+                .environmentObject(appRouter)
                 .transition(.opacity)
 
         case .insights:
@@ -73,7 +74,8 @@ struct MainTabView: View {
                 .transition(.opacity)
 
         case .profile:
-            ProfilePlaceholderView()
+            ProfileView()
+                .environmentObject(appRouter)
                 .transition(.opacity)
         }
     }
