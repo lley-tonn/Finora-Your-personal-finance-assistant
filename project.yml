@@ -6,90 +6,72 @@ options:
   developmentLanguage: en
   xcodeVersion: "15.0"
 
+settings:
+  SWIFT_VERSION: "5.9"
+  PRODUCT_NAME: "Finora"
+  MARKETING_VERSION: "1.0.0"
+  CURRENT_PROJECT_VERSION: "1"
+  TARGETED_DEVICE_FAMILY: "1,2"
+  SUPPORTS_MACCATALYST: false
+  GENERATE_INFOPLIST_FILE: true
+  INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
+  INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: true
+  INFOPLIST_KEY_UILaunchScreen_Generation: true
+  INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+  INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+  ENABLE_PREVIEWS: true
+  ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+
 targets:
   Finora:
     type: application
     platform: iOS
     deploymentTarget: "16.0"
     sources:
-      - path: .
-        excludes:
-          - "Tests/**"
-          - "*.md"
-          - "*.txt"
-          - "*.yml"
-          - "project.yml"
+      - Finora
+    resources:
+      - Finora/Resources/Assets.xcassets
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: com.finora.app
-      INFOPLIST_FILE: Info.plist
-      SWIFT_VERSION: "5.9"
-      IPHONEOS_DEPLOYMENT_TARGET: "16.0"
-      TARGETED_DEVICE_FAMILY: "1,2"
-      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited)"
-    info:
-      path: Info.plist
-      properties:
-        CFBundleDevelopmentRegion: en
-        CFBundleDisplayName: Finora
-        CFBundleExecutable: $(EXECUTABLE_NAME)
-        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
-        CFBundleInfoDictionaryVersion: "6.0"
-        CFBundleName: $(PRODUCT_NAME)
-        CFBundlePackageType: $(PRODUCT_BUNDLE_PACKAGE_TYPE)
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
-        LSRequiresIPhoneOS: true
-        UIApplicationSceneManifest:
-          UIApplicationSupportsMultipleScenes: false
-        UILaunchScreen: {}
-        UIApplicationSupportsIndirectInputEvents: true
-        UIRequiredDeviceCapabilities:
-          - armv7
-        UISupportedInterfaceOrientations:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
-        UISupportedInterfaceOrientations~ipad:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationPortraitUpsideDown
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.finora.app
+        INFOPLIST_KEY_CFBundleDisplayName: "Finora"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+    scheme:
+      testTargets:
+        - FinoraTests
+      gatherCoverageData: true
 
   FinoraTests:
     type: bundle.unit-test
     platform: iOS
     deploymentTarget: "16.0"
     sources:
-      - path: Tests
-    settings:
-      PRODUCT_BUNDLE_IDENTIFIER: com.finora.tests
-      SWIFT_VERSION: "5.9"
-      IPHONEOS_DEPLOYMENT_TARGET: "16.0"
-      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Finora.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Finora"
+      - FinoraTests
     dependencies:
       - target: Finora
-    info:
-      path: Tests/Info.plist
-      properties:
-        CFBundleDevelopmentRegion: en
-        CFBundleExecutable: $(EXECUTABLE_NAME)
-        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
-        CFBundleInfoDictionaryVersion: "6.0"
-        CFBundleName: $(PRODUCT_NAME)
-        CFBundlePackageType: BNDL
-        CFBundleShortVersionString: "1.0"
-        CFBundleVersion: "1"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.finora.app.tests
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
 
 schemes:
   Finora:
     build:
       targets:
         Finora: all
+    run:
+      config: Debug
     test:
+      config: Debug
+      gatherCoverageData: true
       targets:
         - FinoraTests
-    run:
+    profile:
+      config: Release
+    analyze:
       config: Debug
     archive:
       config: Release
-
