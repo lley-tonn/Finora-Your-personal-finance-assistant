@@ -50,7 +50,7 @@ struct OnboardingView: View {
             // Page Carousel
             TabView(selection: $currentPage) {
                 ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
-                    OnboardingPageView(page: page)
+                    SimpleOnboardingPage(page: page)
                         .tag(index)
                 }
             }
@@ -118,9 +118,9 @@ struct OnboardingView: View {
     }
 }
 
-// MARK: - Onboarding Page View
+// MARK: - Simple Onboarding Page View
 
-private struct OnboardingPageView: View {
+private struct SimpleOnboardingPage: View {
     let page: OnboardingPage
 
     var body: some View {
