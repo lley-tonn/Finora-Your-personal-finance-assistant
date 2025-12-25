@@ -14,6 +14,7 @@ struct FinoraApp: App {
     // MARK: - State
 
     @StateObject private var appRouter = AppRouter()
+    @StateObject private var appState = AppState()
 
     // MARK: - Body
 
@@ -26,6 +27,7 @@ struct FinoraApp: App {
                     }
             }
             .environmentObject(appRouter)
+            .environmentObject(appState)
         }
     }
 }

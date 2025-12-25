@@ -13,6 +13,7 @@ struct KeyBackupView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var appRouter: AppRouter
+    @EnvironmentObject private var appState: AppState
 
     @State private var recoveryPhrase = [
         "ocean", "mountain", "forest", "river", "sunset", "valley",
@@ -265,9 +266,16 @@ struct KeyBackupView: View {
     // MARK: - Actions
 
     private func completeBackup() {
-        // TODO: Implement actual backup verification
-        // Navigate to main tab view
-        appRouter.navigate(to: .mainTab)
+        // Mark keys as backed up
+        appState.backupKeys()
+
+        // Navigate to biometric setup (optional step)
+        if !appState.hasSetupBiometrics {
+            appRouter.navigate(to: .biometricSetup)
+        } else {
+            // Go directly to main app
+            appRouter.navigate(to: .mainTab)
+        }
     }
 
     // MARK: - Animations

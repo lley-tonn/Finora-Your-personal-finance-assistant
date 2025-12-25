@@ -13,6 +13,7 @@ struct BiometricSetupView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var appRouter: AppRouter
+    @EnvironmentObject private var appState: AppState
 
     @State private var iconOpacity: Double = 0
     @State private var iconScale: CGFloat = 0.8
@@ -209,14 +210,16 @@ struct BiometricSetupView: View {
     // MARK: - Actions
 
     private func enableBiometric() {
+        // Mark biometrics as set up
+        appState.setupBiometrics()
         // TODO: Implement actual biometric setup
-        // For now, navigate to key generation
-        appRouter.navigate(to: .keyGeneration)
+        // Navigate to main app
+        appRouter.navigate(to: .mainTab)
     }
 
     private func skip() {
-        // Skip biometric setup and continue to key generation
-        appRouter.navigate(to: .keyGeneration)
+        // Skip biometric setup and continue to main app
+        appRouter.navigate(to: .mainTab)
     }
 
     // MARK: - Animations

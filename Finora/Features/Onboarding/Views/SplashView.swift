@@ -13,6 +13,7 @@ struct SplashView: View {
     // MARK: - Environment
 
     @EnvironmentObject private var router: AppRouter
+    @EnvironmentObject private var appState: AppState
 
     // MARK: - State
 
@@ -105,6 +106,22 @@ struct SplashView: View {
                     devButton("💰 Budget Overview", route: .budgetOverview)
                 }
 
+                Divider()
+                    .background(Color.white.opacity(0.3))
+                    .padding(.vertical, 8)
+
+                Button(action: {
+                    appState.resetForDevelopment()
+                }) {
+                    Text("🔄 Reset App State")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.finoraExpense)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(10)
+                }
+
                 Button(action: {
                     showDevMenu = false
                     checkAuthenticationStatus()
@@ -112,7 +129,7 @@ struct SplashView: View {
                     Text("Continue Normal Flow")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(.white.opacity(0.7))
-                        .padding(.top, 20)
+                        .padding(.top, 12)
                 }
             }
             .padding(.horizontal, 24)
@@ -136,9 +153,20 @@ struct SplashView: View {
     // MARK: - Methods
 
     private func checkAuthenticationStatus() {
-        // TODO: Check if user is authenticated
-        // For now, navigate to onboarding
-        router.navigate(to: .onboarding)
+        // Determine where to route based on app state
+        if appState.needsOnboarding {
+            // First time user - show onboarding
+            router.navigate(to: .onboarding)
+        } else if appState.needsAuthentication {
+            // Returning user - show login
+            router.navigate(to: .login)
+        } else if appState.needsIdentitySetup {
+            // Authenticated but needs to complete setup
+            router.navigate(to: .keyGeneration)
+        } else {
+            // Fully set up - go to main app
+            router.navigate(to: .mainTab)
+        }
     }
 }
 

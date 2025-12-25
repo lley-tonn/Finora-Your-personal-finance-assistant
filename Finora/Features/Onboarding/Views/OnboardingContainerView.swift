@@ -14,6 +14,7 @@ struct OnboardingContainerView: View {
 
     @StateObject private var viewModel = OnboardingViewModel()
     @EnvironmentObject private var appRouter: AppRouter
+    @EnvironmentObject private var appState: AppState
 
     @State private var ctaOpacity: Double = 0
     @State private var ctaOffset: CGFloat = 12
@@ -227,6 +228,8 @@ struct OnboardingContainerView: View {
 
     private func completeOnboarding() {
         stopAutoTransition()
+        // Mark onboarding as complete
+        appState.completeOnboarding()
         // Navigate to authentication
         appRouter.navigate(to: .login)
     }

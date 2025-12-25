@@ -14,6 +14,7 @@ struct AuthContainerView: View {
 
     @StateObject private var viewModel = AuthViewModel()
     @EnvironmentObject private var appRouter: AppRouter
+    @EnvironmentObject private var appState: AppState
 
     @State private var logoOpacity: Double = 0
     @State private var logoOffset: CGFloat = -20
@@ -170,15 +171,21 @@ struct AuthContainerView: View {
                 switch viewModel.currentMode {
                 case .login:
                     try await viewModel.login()
+                    // Mark as authenticated
+                    appState.authenticate()
+                    // Check if user needs to complete identity setup
+                    if appState.needsIdentitySetup {
+                        appRouter.navigate(to: .keyGeneration)
+                    } else {
+                        appRouter.navigate(to: .mainTab)
+                    }
+
                 case .register:
                     try await viewModel.register()
-                }
-
-                // Navigate to next step (e.g., biometric setup or dashboard)
-                if viewModel.currentMode == .register {
-                    appRouter.navigate(to: .biometricSetup)
-                } else {
-                    appRouter.navigate(to: .dashboard)
+                    // Mark as authenticated
+                    appState.authenticate()
+                    // New users always need identity setup
+                    appRouter.navigate(to: .keyGeneration)
                 }
             } catch {
                 // TODO: Handle authentication errors
