@@ -2,8 +2,8 @@
 //  MainTabView.swift
 //  Finora
 //
-//  Main navigation container with bottom tab bar
-//  Manages tab selection and content switching
+//  Main navigation container with native bottom tab bar
+//  Minimal, flush-to-bottom design
 //
 
 import SwiftUI
@@ -13,87 +13,52 @@ struct MainTabView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var appRouter: AppRouter
-
     @State private var selectedTab: TabItem = .home
-    @State private var contentOpacity: Double = 1.0
 
     // MARK: - Body
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Background
-            Color.finoraBackground
-                .ignoresSafeArea()
-
-            // Content Area
-            VStack(spacing: 0) {
-                contentView
-                    .opacity(contentOpacity)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                // Spacer for tab bar
-                Spacer()
-                    .frame(height: 88)
-            }
-
-            // Custom Tab Bar
-            VStack(spacing: 0) {
-                Spacer()
-
-                TabBarView(selectedTab: $selectedTab)
-                    .ignoresSafeArea(.keyboard)
-            }
-        }
-        .preferredColorScheme(.dark)
-        .onChange(of: selectedTab) { newTab in
-            handleTabChange(to: newTab)
-        }
-    }
-
-    // MARK: - Content View
-
-    @ViewBuilder
-    private var contentView: some View {
-        switch selectedTab {
-        case .home:
+        TabView(selection: $selectedTab) {
+            // Home Tab
             DashboardView()
                 .environmentObject(appRouter)
-                .transition(.opacity)
+                .tabItem {
+                    Label(TabItem.home.label, systemImage: TabItem.home.iconName)
+                }
+                .tag(TabItem.home)
 
-        case .budget:
+            // Budget Tab
             BudgetOverviewView()
                 .environmentObject(appRouter)
-                .transition(.opacity)
+                .tabItem {
+                    Label(TabItem.budget.label, systemImage: TabItem.budget.iconName)
+                }
+                .tag(TabItem.budget)
 
-        case .insights:
+            // Insights Tab
             InsightsPlaceholderView()
-                .transition(.opacity)
+                .tabItem {
+                    Label(TabItem.insights.label, systemImage: TabItem.insights.iconName)
+                }
+                .tag(TabItem.insights)
 
-        case .compare:
+            // Compare Tab
             ComparePlaceholderView()
-                .transition(.opacity)
+                .tabItem {
+                    Label(TabItem.compare.label, systemImage: TabItem.compare.iconName)
+                }
+                .tag(TabItem.compare)
 
-        case .profile:
+            // Profile Tab
             ProfileView()
                 .environmentObject(appRouter)
-                .transition(.opacity)
+                .tabItem {
+                    Label(TabItem.profile.label, systemImage: TabItem.profile.iconName)
+                }
+                .tag(TabItem.profile)
         }
-    }
-
-    // MARK: - Actions
-
-    private func handleTabChange(to tab: TabItem) {
-        // Subtle content fade during transition
-        withAnimation(.easeInOut(duration: 0.15)) {
-            contentOpacity = 0.95
-        }
-
-        // Restore opacity
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            withAnimation(.easeInOut(duration: 0.15)) {
-                contentOpacity = 1.0
-            }
-        }
+        .tint(.finoraAIAccent)
+        .preferredColorScheme(.dark)
     }
 }
 

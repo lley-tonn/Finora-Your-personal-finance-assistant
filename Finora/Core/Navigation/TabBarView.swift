@@ -14,6 +14,7 @@ struct TabBarView: View {
 
     @Binding var selectedTab: TabItem
     @State private var indicatorOffset: CGFloat = 0
+    @State private var hasAppeared: Bool = false
 
     // Haptic feedback generator
     private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -21,30 +22,33 @@ struct TabBarView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Top divider
-            Rectangle()
-                .fill(Color.finoraBorder.opacity(0.15))
-                .frame(height: 0.5)
-
-            HStack(spacing: 0) {
-                ForEach(TabItem.allCases) { tab in
-                    tabButton(for: tab)
-                }
+        HStack(spacing: 0) {
+            ForEach(TabItem.allCases) { tab in
+                tabButton(for: tab)
             }
-            .padding(.horizontal, 8)
-            .padding(.top, 8)
-            .padding(.bottom, 4)
         }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 12)
         .background(
             .ultraThinMaterial,
-            in: Rectangle()
+            in: RoundedRectangle(cornerRadius: 24, style: .continuous)
         )
-        .overlay(alignment: .bottom) {
-            // Safe area spacer for home indicator
-            Color.clear
-                .frame(height: 0)
-                .background(Color.finoraBackground.opacity(0.95))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.1), lineWidth: 0.5)
+        )
+        .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
+        .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 4)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 20)
+        .background(Color.clear)
+        .scaleEffect(hasAppeared ? 1.0 : 0.88)
+        .offset(y: hasAppeared ? 0 : 20)
+        .opacity(hasAppeared ? 1.0 : 0.0)
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.68, blendDuration: 0)) {
+                hasAppeared = true
+            }
         }
     }
 
@@ -60,11 +64,14 @@ struct TabBarView: View {
                     .font(.system(size: 22, weight: isSelected(tab) ? .semibold : .regular))
                     .foregroundColor(isSelected(tab) ? .finoraAIAccent : .finoraTextTertiary)
                     .frame(height: 28)
+                    .scaleEffect(isSelected(tab) ? 1.08 : 1.0)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.65), value: isSelected(tab))
 
                 // Label
                 Text(tab.label)
                     .font(.system(size: 11, weight: isSelected(tab) ? .semibold : .regular))
                     .foregroundColor(isSelected(tab) ? .finoraAIAccent : .finoraTextTertiary)
+                    .animation(.easeInOut(duration: 0.25), value: isSelected(tab))
 
                 // Active indicator dot
                 Circle()
@@ -72,10 +79,13 @@ struct TabBarView: View {
                     .frame(width: 4, height: 4)
                     .opacity(isSelected(tab) ? 1.0 : 0.0)
                     .scaleEffect(isSelected(tab) ? 1.0 : 0.5)
+                    .animation(.spring(response: 0.35, dampingFraction: 0.6), value: isSelected(tab))
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 64)
+            .frame(height: 56)
             .contentShape(Rectangle())
+            .scaleEffect(isSelected(tab) ? 1.0 : 0.96)
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isSelected(tab))
         }
         .buttonStyle(TabButtonStyle())
         .accessibilityLabel(tab.accessibilityLabel)

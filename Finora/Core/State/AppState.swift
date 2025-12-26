@@ -13,6 +13,12 @@ class AppState: ObservableObject {
 
     // MARK: - Published Properties
 
+    @Published var userName: String {
+        didSet {
+            UserDefaults.standard.set(userName, forKey: "userName")
+        }
+    }
+
     @Published var hasCompletedOnboarding: Bool {
         didSet {
             UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
@@ -37,6 +43,7 @@ class AppState: ObservableObject {
 
     init() {
         // Load persisted state
+        self.userName = UserDefaults.standard.string(forKey: "userName") ?? "Alex"
         self.hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         self.hasSetupBiometrics = UserDefaults.standard.bool(forKey: "hasSetupBiometrics")
         self.hasBackedUpKeys = UserDefaults.standard.bool(forKey: "hasBackedUpKeys")
@@ -67,7 +74,12 @@ class AppState: ObservableObject {
         hasBackedUpKeys = true
     }
 
+    func updateUserName(_ name: String) {
+        userName = name
+    }
+
     func resetForDevelopment() {
+        userName = "Alex"
         hasCompletedOnboarding = false
         isAuthenticated = false
         hasSetupBiometrics = false

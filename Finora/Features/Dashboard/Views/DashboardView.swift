@@ -13,6 +13,7 @@ struct DashboardView: View {
     // MARK: - Properties
 
     @EnvironmentObject private var appRouter: AppRouter
+    @EnvironmentObject private var appState: AppState
 
     // Animation States
     @State private var headerOpacity: Double = 0
@@ -76,7 +77,7 @@ struct DashboardView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Welcome back")
+            Text("Welcome back, \(appState.userName)")
                 .font(.system(size: 16, weight: .regular))
                 .foregroundColor(.finoraTextSecondary)
 
@@ -143,54 +144,54 @@ struct DashboardView: View {
         Button(action: {
             appRouter.navigate(to: .aiChat)
         }) {
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 // AI Icon
                 ZStack {
                     Circle()
                         .fill(LinearGradient.finoraAIGradient)
-                        .frame(width: 52, height: 52)
+                        .frame(width: 44, height: 44)
 
                     Image(systemName: "sparkles")
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.white)
                 }
 
                 // Content
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 6) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 4) {
                         Text("AI Insight")
-                            .font(.system(size: 13, weight: .bold))
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(.finoraAIAccent)
 
                         Image(systemName: "wand.and.stars")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(.finoraAIAccent)
                     }
 
                     Text("You're on track to save $1,200 this month")
-                        .font(.system(size: 15, weight: .medium))
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.finoraTextPrimary)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
 
                     Text("Tap for details")
-                        .font(.system(size: 13, weight: .regular))
+                        .font(.system(size: 12, weight: .regular))
                         .foregroundColor(.finoraTextTertiary)
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.finoraTextTertiary)
             }
-            .padding(20)
+            .padding(16)
             .background(
-                RoundedRectangle(cornerRadius: 18)
+                RoundedRectangle(cornerRadius: 16)
                     .fill(Color.finoraAIInsightBackground)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 18)
+                RoundedRectangle(cornerRadius: 16)
                     .stroke(
                         LinearGradient(
                             colors: [
