@@ -44,6 +44,14 @@ enum AppRoute: Hashable {
     case settings
     case dataControl
 
+    // MARK: - Expense Flow
+
+    case addExpense
+    case quickExpense
+    case detailedExpense
+    case receiptScanner
+    case transactionList
+
     // MARK: - View Builder
 
     @ViewBuilder
@@ -100,6 +108,18 @@ enum AppRoute: Hashable {
             SettingsView()
         case .dataControl:
             DataControlView()
+
+        // Expense Flow
+        case .addExpense:
+            AddExpenseView()
+        case .quickExpense:
+            QuickExpenseView()
+        case .detailedExpense:
+            DetailedExpenseView()
+        case .receiptScanner:
+            ReceiptScannerView()
+        case .transactionList:
+            TransactionListView()
         }
     }
 }
