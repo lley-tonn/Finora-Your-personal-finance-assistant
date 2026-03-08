@@ -22,6 +22,8 @@ settings:
   ENABLE_PREVIEWS: true
   ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+  INFOPLIST_KEY_NSCameraUsageDescription: "Finora uses the camera to scan receipts for expense tracking"
+  INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Finora accesses your photo library to import receipts for expense tracking"
 
 targets:
   Finora:

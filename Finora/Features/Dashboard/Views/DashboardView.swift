@@ -23,11 +23,16 @@ struct DashboardView: View {
     @State private var budgetOpacity: Double = 0
     @State private var actionsOpacity: Double = 0
     @State private var transactionsOpacity: Double = 0
+    @State private var fabOpacity: Double = 0
+    @State private var fabScale: CGFloat = 0.5
+
+    // Add Expense Sheet
+    @State private var showAddExpense: Bool = false
 
     // MARK: - Body
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottomTrailing) {
             // Background
             Color.finoraBackground.ignoresSafeArea()
 
@@ -59,17 +64,53 @@ struct DashboardView: View {
                     recentTransactionsSection
                         .opacity(transactionsOpacity)
 
-                    // Bottom spacing
+                    // Bottom spacing for FAB
                     Spacer()
-                        .frame(height: 40)
+                        .frame(height: 100)
                 }
                 .padding(.horizontal, 24)
             }
+
+            // Floating Action Button - Add Expense
+            addExpenseFAB
+                .opacity(fabOpacity)
+                .scaleEffect(fabScale)
+                .padding(.trailing, 24)
+                .padding(.bottom, 100)
         }
         .navigationBarBackButtonHidden()
         .preferredColorScheme(.dark)
         .onAppear {
             animateAppearance()
+        }
+        .sheet(isPresented: $showAddExpense) {
+            AddExpenseView()
+                .environmentObject(appRouter)
+        }
+    }
+
+    // MARK: - Add Expense FAB
+
+    private var addExpenseFAB: some View {
+        Button(action: {
+            showAddExpense = true
+        }) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.finoraAIAccent, Color.finoraAIAccent.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 60, height: 60)
+                    .shadow(color: Color.finoraAIAccent.opacity(0.4), radius: 12, x: 0, y: 4)
+
+                Image(systemName: "plus")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(.white)
+            }
         }
     }
 
@@ -351,7 +392,7 @@ struct DashboardView: View {
                 Spacer()
 
                 Button(action: {
-                    // Navigate to full transaction list
+                    appRouter.navigate(to: .transactionList)
                 }) {
                     Text("See All")
                         .font(.system(size: 14, weight: .medium))
@@ -457,6 +498,12 @@ struct DashboardView: View {
         // Recent Transactions
         withAnimation(.easeInOut(duration: 0.8).delay(0.5)) {
             transactionsOpacity = 1.0
+        }
+
+        // FAB
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.6)) {
+            fabOpacity = 1.0
+            fabScale = 1.0
         }
     }
 }
