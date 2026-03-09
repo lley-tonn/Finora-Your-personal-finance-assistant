@@ -2,13 +2,20 @@
 //  CameraManager.swift
 //  Finora
 //
-//  Handles camera capture for receipt scanning
-//  Uses AVFoundation for photo capture
+//  Handles camera capture for receipt scanning and QR code detection
+//  Uses AVFoundation for photo capture and barcode scanning
 //
 
 import AVFoundation
 import UIKit
 import SwiftUI
+
+// MARK: - Scan Mode
+
+enum ScanMode {
+    case receipt
+    case qrCode
+}
 
 @MainActor
 class CameraManager: NSObject, ObservableObject {
@@ -17,13 +24,16 @@ class CameraManager: NSObject, ObservableObject {
 
     @Published var permissionStatus: AVAuthorizationStatus = .notDetermined
     @Published var capturedImage: UIImage?
+    @Published var scannedQRCode: String?
     @Published var isSessionRunning = false
     @Published var error: CameraError?
+    @Published var scanMode: ScanMode = .receipt
 
     // MARK: - Camera Session
 
     let captureSession = AVCaptureSession()
     private var photoOutput = AVCapturePhotoOutput()
+    private var metadataOutput = AVCaptureMetadataOutput()
     private var currentCameraPosition: AVCaptureDevice.Position = .back
 
     // MARK: - Initialization
@@ -95,6 +105,14 @@ class CameraManager: NSObject, ObservableObject {
             throw CameraError.cameraUnavailable
         }
 
+        // Add metadata output for QR codes
+        metadataOutput = AVCaptureMetadataOutput()
+        if captureSession.canAddOutput(metadataOutput) {
+            captureSession.addOutput(metadataOutput)
+            metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
+            metadataOutput.metadataObjectTypes = [.qr, .ean8, .ean13, .pdf417, .code128, .code39]
+        }
+
         captureSession.commitConfiguration()
     }
 
@@ -120,6 +138,13 @@ class CameraManager: NSObject, ObservableObject {
         }
     }
 
+    // MARK: - Mode Switching
+
+    func setScanMode(_ mode: ScanMode) {
+        scanMode = mode
+        scannedQRCode = nil
+    }
+
     // MARK: - Capture Photo
 
     func capturePhoto() {
@@ -137,6 +162,7 @@ class CameraManager: NSObject, ObservableObject {
 
     func reset() {
         capturedImage = nil
+        scannedQRCode = nil
         error = nil
     }
 
@@ -181,33 +207,76 @@ extension CameraManager: AVCapturePhotoCaptureDelegate {
     }
 }
 
+// MARK: - AVCaptureMetadataOutputObjectsDelegate
+
+extension CameraManager: AVCaptureMetadataOutputObjectsDelegate {
+    nonisolated func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+        Task { @MainActor in
+            // Only process QR codes when in QR mode
+            guard self.scanMode == .qrCode else { return }
+
+            guard let metadataObject = metadataObjects.first,
+                  let readableObject = metadataObject as? AVMetadataMachineReadableCodeObject,
+                  let stringValue = readableObject.stringValue else {
+                return
+            }
+
+            // Haptic feedback
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+
+            self.scannedQRCode = stringValue
+        }
+    }
+}
+
 // MARK: - Camera Preview View
 
 struct CameraPreviewView: UIViewRepresentable {
     let session: AVCaptureSession
 
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView(frame: .zero)
-
-        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer.videoGravity = .resizeAspectFill
-        previewLayer.frame = view.bounds
-        view.layer.addSublayer(previewLayer)
-
-        context.coordinator.previewLayer = previewLayer
-
+    func makeUIView(context: Context) -> CameraPreviewUIView {
+        let view = CameraPreviewUIView()
+        view.session = session
         return view
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {
-        context.coordinator.previewLayer?.frame = uiView.bounds
+    func updateUIView(_ uiView: CameraPreviewUIView, context: Context) {
+        // Session is already set, layout will be handled by the view itself
+    }
+}
+
+// Custom UIView that properly handles preview layer sizing
+class CameraPreviewUIView: UIView {
+    var session: AVCaptureSession? {
+        didSet {
+            if let session = session {
+                previewLayer.session = session
+            }
+        }
     }
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
+    private var previewLayer: AVCaptureVideoPreviewLayer!
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupPreviewLayer()
     }
 
-    class Coordinator {
-        var previewLayer: AVCaptureVideoPreviewLayer?
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupPreviewLayer()
+    }
+
+    private func setupPreviewLayer() {
+        previewLayer = AVCaptureVideoPreviewLayer()
+        previewLayer.videoGravity = .resizeAspectFill
+        layer.addSublayer(previewLayer)
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // Update preview layer frame whenever the view's bounds change
+        previewLayer.frame = bounds
     }
 }

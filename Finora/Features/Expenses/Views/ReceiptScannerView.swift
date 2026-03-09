@@ -2,12 +2,13 @@
 //  ReceiptScannerView.swift
 //  Finora
 //
-//  Camera capture for receipt scanning
-//  Supports camera capture and photo library selection
+//  Camera capture for receipt scanning and QR code detection
+//  Supports camera capture, photo library selection, and QR scanning
 //
 
 import SwiftUI
 import PhotosUI
+import UIKit
 
 struct ReceiptScannerView: View {
 
@@ -29,6 +30,9 @@ struct ReceiptScannerView: View {
     @State private var isProcessing = false
     @State private var headerOpacity: Double = 0
     @State private var controlsOpacity: Double = 0
+
+    // QR Code
+    @State private var showQRResult = false
 
     // MARK: - Body
 
@@ -71,6 +75,11 @@ struct ReceiptScannerView: View {
                 processImage(image)
             }
         }
+        .onChange(of: cameraManager.scannedQRCode) { qrCode in
+            if let qrCode = qrCode {
+                processQRCode(qrCode)
+            }
+        }
         .onChange(of: selectedPhotoItem) { item in
             Task {
                 if let item = item,
@@ -82,6 +91,18 @@ struct ReceiptScannerView: View {
         }
         .navigationDestination(isPresented: $showPreview) {
             ReceiptPreviewView(viewModel: viewModel)
+        }
+        .alert("QR Code Detected", isPresented: $showQRResult) {
+            Button("Use This") {
+                if let qrCode = cameraManager.scannedQRCode {
+                    parseQRCodeData(qrCode)
+                }
+            }
+            Button("Scan Again", role: .cancel) {
+                cameraManager.scannedQRCode = nil
+            }
+        } message: {
+            Text(cameraManager.scannedQRCode ?? "")
         }
     }
 
@@ -106,10 +127,18 @@ struct ReceiptScannerView: View {
                     .opacity(headerOpacity)
                     .padding(.top, 60)
 
+                // Mode Toggle
+                modeToggle
+                    .padding(.top, 16)
+
                 Spacer()
 
-                // Receipt Guide Frame
-                receiptGuideFrame
+                // Guide Frame (different for receipt vs QR)
+                if cameraManager.scanMode == .receipt {
+                    receiptGuideFrame
+                } else {
+                    qrCodeGuideFrame
+                }
 
                 Spacer()
 
@@ -125,14 +154,71 @@ struct ReceiptScannerView: View {
 
     private var header: some View {
         VStack(spacing: 8) {
-            Text("Scan Receipt")
+            Text(cameraManager.scanMode == .receipt ? "Scan Receipt" : "Scan QR Code")
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.white)
 
-            Text("Position receipt within the frame")
+            Text(cameraManager.scanMode == .receipt
+                 ? "Position receipt within the frame"
+                 : "Point camera at QR code")
                 .font(.system(size: 14, weight: .regular))
                 .foregroundColor(.white.opacity(0.7))
         }
+    }
+
+    // MARK: - Mode Toggle
+
+    private var modeToggle: some View {
+        HStack(spacing: 0) {
+            // Receipt Mode
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    cameraManager.setScanMode(.receipt)
+                }
+            }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "doc.text.viewfinder")
+                        .font(.system(size: 14, weight: .medium))
+                    Text("Receipt")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .foregroundColor(cameraManager.scanMode == .receipt ? .white : .white.opacity(0.6))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(
+                    cameraManager.scanMode == .receipt
+                        ? Color.finoraAIAccent
+                        : Color.clear
+                )
+                .cornerRadius(20)
+            }
+
+            // QR Code Mode
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    cameraManager.setScanMode(.qrCode)
+                }
+            }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "qrcode.viewfinder")
+                        .font(.system(size: 14, weight: .medium))
+                    Text("QR Code")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .foregroundColor(cameraManager.scanMode == .qrCode ? .white : .white.opacity(0.6))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(
+                    cameraManager.scanMode == .qrCode
+                        ? Color.finoraAIAccent
+                        : Color.clear
+                )
+                .cornerRadius(20)
+            }
+        }
+        .padding(4)
+        .background(Color.white.opacity(0.15))
+        .cornerRadius(24)
     }
 
     // MARK: - Receipt Guide Frame
@@ -163,6 +249,45 @@ struct ReceiptScannerView: View {
             )
     }
 
+    // MARK: - QR Code Guide Frame
+
+    private var qrCodeGuideFrame: some View {
+        ZStack {
+            // Scanning area
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(Color.finoraAIAccent, lineWidth: 3)
+                .frame(width: 250, height: 250)
+
+            // Corner accents
+            ZStack {
+                cornerAccent(rotation: 0)
+                    .position(x: 20, y: 20)
+
+                cornerAccent(rotation: 90)
+                    .position(x: 230, y: 20)
+
+                cornerAccent(rotation: 270)
+                    .position(x: 20, y: 230)
+
+                cornerAccent(rotation: 180)
+                    .position(x: 230, y: 230)
+            }
+            .frame(width: 250, height: 250)
+
+            // Scanning animation line
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.clear, Color.finoraAIAccent, Color.clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: 200, height: 2)
+                .offset(y: -50)
+        }
+    }
+
     private func cornerAccent(rotation: Double) -> some View {
         Path { path in
             path.move(to: CGPoint(x: 0, y: 20))
@@ -191,25 +316,50 @@ struct ReceiptScannerView: View {
                 }
             }
 
-            // Capture Button
-            Button(action: {
-                cameraManager.capturePhoto()
-            }) {
+            // Capture Button (only show for receipt mode)
+            if cameraManager.scanMode == .receipt {
+                Button(action: {
+                    cameraManager.capturePhoto()
+                }) {
+                    ZStack {
+                        Circle()
+                            .stroke(Color.white, lineWidth: 4)
+                            .frame(width: 76, height: 76)
+
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 64, height: 64)
+                    }
+                }
+            } else {
+                // QR Mode indicator
                 ZStack {
                     Circle()
-                        .stroke(Color.white, lineWidth: 4)
+                        .stroke(Color.finoraAIAccent, lineWidth: 4)
                         .frame(width: 76, height: 76)
 
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 64, height: 64)
+                    Image(systemName: "qrcode.viewfinder")
+                        .font(.system(size: 32, weight: .medium))
+                        .foregroundColor(.finoraAIAccent)
                 }
             }
 
-            // Placeholder for symmetry
-            Circle()
-                .fill(Color.clear)
-                .frame(width: 56, height: 56)
+            // QR Code Button (visual indicator, mode already handled by toggle)
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    cameraManager.setScanMode(cameraManager.scanMode == .qrCode ? .receipt : .qrCode)
+                }
+            }) {
+                ZStack {
+                    Circle()
+                        .fill(cameraManager.scanMode == .qrCode ? Color.finoraAIAccent : Color.white.opacity(0.2))
+                        .frame(width: 56, height: 56)
+
+                    Image(systemName: "qrcode")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundColor(.white)
+                }
+            }
         }
     }
 
@@ -228,7 +378,7 @@ struct ReceiptScannerView: View {
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
 
-                Text("To scan receipts, please allow camera access")
+                Text("To scan receipts and QR codes, please allow camera access")
                     .font(.system(size: 15, weight: .regular))
                     .foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
@@ -341,7 +491,7 @@ struct ReceiptScannerView: View {
                     .progressViewStyle(CircularProgressViewStyle(tint: .finoraAIAccent))
                     .scaleEffect(1.5)
 
-                Text("Processing Receipt...")
+                Text("Processing...")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.white)
             }
@@ -395,6 +545,38 @@ struct ReceiptScannerView: View {
                 }
             }
         }
+    }
+
+    private func processQRCode(_ qrCode: String) {
+        // Show alert with QR code content
+        showQRResult = true
+    }
+
+    private func parseQRCodeData(_ qrCode: String) {
+        // Try to parse QR code data
+        // Common formats: URL with transaction data, JSON, plain text amount
+
+        // Check if it's a URL
+        if let url = URL(string: qrCode), url.scheme != nil {
+            // Could be a payment link or receipt URL
+            viewModel.notes = "QR Code: \(qrCode)"
+        }
+
+        // Try to extract amount from QR code
+        let amountPattern = #"(\d+[.,]\d{2})"#
+        if let regex = try? NSRegularExpression(pattern: amountPattern),
+           let match = regex.firstMatch(in: qrCode, range: NSRange(qrCode.startIndex..., in: qrCode)),
+           let range = Range(match.range(at: 1), in: qrCode) {
+            let amountString = String(qrCode[range]).replacingOccurrences(of: ",", with: ".")
+            viewModel.amountText = amountString
+        }
+
+        // Set a default item name from QR
+        viewModel.itemName = "QR Code Transaction"
+        viewModel.notes = qrCode
+
+        // Navigate to preview
+        showPreview = true
     }
 
     private func animateAppearance() {
